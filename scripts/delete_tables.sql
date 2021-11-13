@@ -1,23 +1,23 @@
-drop table book;
+drop table if exists book;
 
-drop table library;
+drop table if exists library;
 
-drop table meeting;
+drop table if exists meeting;
 
-drop table synagogue_attribute;
+drop table if exists synagogue_attribute;
 
-drop table premise;
+drop table if exists premise;
 
-drop table tradition_attribute;
+drop table if exists tradition_attribute;
 
-drop table attribute;
+drop table if exists attribute;
 
-drop table event_member;
+drop table if exists event_member;
 
-drop table member;
+drop table if exists member;
 
-drop table event;
+drop table if exists event;
 
-drop table synagogue;
+drop table if exists synagogue;
 
-drop table tradition;
+drop table if exists tradition;
