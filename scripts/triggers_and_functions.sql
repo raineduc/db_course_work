@@ -1,125 +1,23 @@
-create table Farm (
-    farm_id serial primary key,
-    location text,
-    name varchar(32)
-);
+create trigger check_max_visitors
+    before INSERT on event_member
+    for each row execute procedure check_max_visitors_function();
 
-create table Client (
+create or replace function check_max_visitors_function() returns trigger as $check_max_visitors_function$
+declare
+    max_visitors           integer;
+    current_visitors_count integer;
+BEGIN
+    SELECT count(*)
+    INTO current_visitors_count
+    FROM event_member
+    WHERE event_member.event_id = NEW.event_id;
+    SELECT meeting.max_visitors INTO max_visitors FROM meeting
+    WHERE event = NEW.event_id;
+    IF (current_visitors_count = max_visitors) THEN
+        RAISE EXCEPTION 'Visitors are limited, try next time!';
+    END IF;
 
-                        client_id serial primary key,
+    return NEW;
+END;
 
-                        name varchar(32),
-
-                        surname varchar(32),
-
-                        email varchar(32),
-
-                        phone_number varchar(32),
-
-                        country varchar(32),
-
-                        city varchar(32),
-
-                        address text
-
-);
-
-create table Pick_Up_Point (
-
-                               pick_up_point_id serial primary key,
-
-                               location text,
-
-                               number_of_cells integer,
-
-                               number_of_free_cells integer
-
-);
-
-create type cell_status as ENUM ('available', 'occupied', 'broken');
-
-create table Cell (
-
-                      cell_id serial primary key,
-
-                      status cell_status,
-
-                      client_id int
-
-                          references Client(client_id)
-
-                              ON DELETE set null
-
-                              ON UPDATE cascade,
-
-                      pick_up_point_id int
-
-                          references Pick_Up_Point(pick_up_point_id)
-
-                              ON DELETE set null
-
-                              ON UPDATE cascade
-
-);
-
-create table Product (
-
-                         product_id serial primary key,
-
-                         type text,
-
-                         weight integer,
-
-                         size integer ARRAY[3],
-
-                         departure_date date,
-
-                         arrival_date date,
-
-                         production_date date,
-
-                         expiration_date date,
-
-                         client_id int
-
-                             references Client(client_id)
-
-                                 ON DELETE cascade
-
-                                 ON UPDATE cascade,
-
-                         pick_up_point_id int
-
-                             references Pick_Up_Point(pick_up_point_id)
-
-                                 ON DELETE set null
-
-                                 ON UPDATE cascade,
-
-                         farm_id int
-
-                             references Farm(farm_id)
-
-                                 ON DELETE cascade
-
-                                 ON UPDATE cascade
-
-);
-
-create trigger cell_was_added
-    after INSERT on cell
-    for each row execute procedure cell_was_added_function();
-
-create function cell_was_added_function() returns trigger as $cell_was_added_function$
-    BEGIN
-        UPDATE pick_up_point
-        SET number_of_cells = number_of_cells + 1
-        WHERE pick_up_point_id = NEW.pick_up_point_id;
-        UPDATE pick_up_point
-        SET number_of_free_cells = number_of_free_cells + 1
-        WHERE pick_up_point_id = NEW.pick_up_point_id
-        AND NEW.status = 'available';
-        RETURN new;
-    END;
-
-$cell_was_added_function$ LANGUAGE plpgsql;
+$check_max_visitors_function$ LANGUAGE plpgsql;
