@@ -92,3 +92,13 @@ create table event_member
     member_id SERIAL REFERENCES member ON DELETE CASCADE,
     primary key (event_id, member_id)
 );
+
+create function update_role(in our_member_id integer, in new_role varchar(50)) returns text as $$
+BEGIN
+    update member
+    set role = new_role
+    where member_id = our_member_id;
+    return 'New role successfully updated!';
+END;
+
+$$ LANGUAGE plpgsql;

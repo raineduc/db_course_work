@@ -21,3 +21,4 @@ BEGIN
 END;
 
 $check_max_visitors_function$ LANGUAGE plpgsql;
+
