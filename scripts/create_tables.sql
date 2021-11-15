@@ -41,7 +41,8 @@ create table book
     name VARCHAR(50) NOT NULL,
     description VARCHAR(250) NOT NULL,
     library INTEGER REFERENCES library ON DELETE CASCADE NOT NULL,
-    borrower INTEGER REFERENCES member ON DELETE SET NULL
+    borrower INTEGER REFERENCES member ON DELETE SET NULL,
+    is_available BOOLEAN
 );
 
 create table event
@@ -102,3 +103,23 @@ BEGIN
 END;
 
 $$ LANGUAGE plpgsql;
+
+create function book_was_borrowed_function() returns trigger as $book_was_borrowed_function$
+BEGIN
+    IF borrower is null THEN
+        UPDATE book
+        SET is_available = true
+        WHERE book_id = NEW.book_id;
+    ELSE
+        UPDATE book
+        SET is_available = false
+        WHERE book_id = NEW.book_id;
+    END IF;
+    RETURN new;
+END;
+
+$book_was_borrowed_function$ LANGUAGE plpgsql;
+
+create trigger cell_was_updated
+    after UPDATE of borrower on book
+    for each row execute procedure book_was_borrowed_function();
