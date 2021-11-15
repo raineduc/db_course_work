@@ -93,33 +93,3 @@ create table event_member
     member_id SERIAL REFERENCES member ON DELETE CASCADE,
     primary key (event_id, member_id)
 );
-
-create function update_role(in our_member_id integer, in new_role varchar(50)) returns text as $$
-BEGIN
-    update member
-    set role = new_role
-    where member_id = our_member_id;
-    return 'New role successfully updated!';
-END;
-
-$$ LANGUAGE plpgsql;
-
-create function book_was_borrowed_function() returns trigger as $book_was_borrowed_function$
-BEGIN
-    IF borrower is null THEN
-        UPDATE book
-        SET is_available = true
-        WHERE book_id = NEW.book_id;
-    ELSE
-        UPDATE book
-        SET is_available = false
-        WHERE book_id = NEW.book_id;
-    END IF;
-    RETURN new;
-END;
-
-$book_was_borrowed_function$ LANGUAGE plpgsql;
-
-create trigger cell_was_updated
-    after UPDATE of borrower on book
-    for each row execute procedure book_was_borrowed_function();

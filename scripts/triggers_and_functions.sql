@@ -42,3 +42,14 @@ $book_was_borrowed_function$ LANGUAGE plpgsql;
 create trigger cell_was_updated
     after UPDATE of borrower on book
     for each row execute procedure book_was_borrowed_function();
+
+
+create function update_role(in our_member_id integer, in new_role varchar(50)) returns text as $$
+BEGIN
+    update member
+    set role = new_role
+    where member_id = our_member_id;
+    return 'New role successfully updated!';
+END;
+
+$$ LANGUAGE plpgsql;
